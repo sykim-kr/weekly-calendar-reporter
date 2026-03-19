@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주간 캘린더 리포터</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>주간 캘린더 이벤트 리포트</h1>
+    <p class="subtitle" id="dateRange"></p>
+
+    <div id="authSection">
+      <button id="loginBtn" class="btn btn-login">Google 로그인</button>
+    </div>
+
+    <div id="loadingSection" class="hidden">
+      <p>이벤트를 불러오는 중...</p>
+    </div>
+
+    <div id="eventsSection" class="hidden">
+      <div class="select-all-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="selectAll" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="select-all-text">전체 선택 / 해제</span>
+      </div>
+
+      <div class="events-header">
+        <span class="col-toggle">선택</span>
+        <span class="col-name">이벤트명</span>
+        <span class="col-date">날짜</span>
+        <span class="col-comment">비고</span>
+      </div>
+
+      <div id="eventList"></div>
+
+      <div class="button-group">
+        <button id="submitBtn" class="btn btn-confirm">확인</button>
+        <button id="cancelBtn" class="btn btn-cancel">취소</button>
+      </div>
+    </div>
+
+    <div id="resultSection" class="hidden">
+      <p id="resultMessage"></p>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

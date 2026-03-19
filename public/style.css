@@ -1,0 +1,269 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #1a1a2e;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Auth */
+.btn-login {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-login:hover {
+  background: #3367d6;
+}
+
+/* Events header */
+.select-all-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.select-all-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.events-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px 200px;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* Event row */
+.event-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px 200px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.event-row:hover {
+  background: #f8f9fa;
+}
+
+.event-row.disabled {
+  opacity: 0.45;
+}
+
+.event-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.event-date {
+  font-size: 13px;
+  color: #666;
+}
+
+.event-comment {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.event-comment:focus {
+  border-color: #4285f4;
+}
+
+/* Toggle switch */
+.toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-label input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc;
+  border-radius: 24px;
+  transition: 0.25s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.25s;
+}
+
+.toggle-label input:checked + .toggle-slider {
+  background: #4285f4;
+}
+
+.toggle-label input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* Buttons */
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.btn {
+  padding: 10px 40px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-confirm {
+  background: #4285f4;
+  color: #fff;
+}
+
+.btn-confirm:hover {
+  background: #3367d6;
+}
+
+.btn-confirm:disabled {
+  background: #a0c4ff;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #e0e0e0;
+  color: #555;
+}
+
+.btn-cancel:hover {
+  background: #d0d0d0;
+}
+
+/* Result */
+#resultSection p {
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.error {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+/* Loading */
+#loadingSection p {
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+  font-size: 15px;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .container {
+    margin: 16px;
+    padding: 20px;
+  }
+
+  .events-header,
+  .event-row {
+    grid-template-columns: 50px 1fr;
+    gap: 8px;
+  }
+
+  .col-date,
+  .col-comment,
+  .event-date {
+    display: none;
+  }
+
+  .event-comment {
+    grid-column: 1 / -1;
+    display: block;
+    margin-top: 4px;
+  }
+}
