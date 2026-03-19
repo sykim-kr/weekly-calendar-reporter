@@ -4,6 +4,7 @@ const SHEET_ID = '1K5Vp3T99kTP5v0kQBdAISnin36HjxAXuPJEa7Q2-DxM';
 
 let tokenClient;
 let accessToken = null;
+let sheetName = null; // 실제 시트 이름 (동적으로 가져옴)
 
 // ── 날짜 유틸 ──
 function getLastWeekRange() {
@@ -231,9 +232,10 @@ async function onSubmit() {
         },
       });
 
+      const name = await resolveSheetName();
       await gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
-        range: 'Sheet1!A2:C2',
+        range: `'${name}'!A2:C2`,
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: [row],
@@ -251,11 +253,25 @@ async function onSubmit() {
   }
 }
 
+async function resolveSheetName() {
+  if (sheetName) return sheetName;
+  const res = await gapi.client.sheets.spreadsheets.get({
+    spreadsheetId: SHEET_ID,
+    fields: 'sheets.properties',
+  });
+  // gid=0인 첫 번째 시트의 실제 이름을 가져옴
+  const firstSheet = res.result.sheets.find(s => s.properties.sheetId === 0)
+    || res.result.sheets[0];
+  sheetName = firstSheet.properties.title;
+  return sheetName;
+}
+
 async function ensureHeader() {
+  const name = await resolveSheetName();
   try {
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Sheet1!A1:C1',
+      range: `'${name}'!A1:C1`,
     });
     if (res.result.values && res.result.values.length > 0) return;
   } catch (e) {
@@ -264,7 +280,7 @@ async function ensureHeader() {
 
   await gapi.client.sheets.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: 'Sheet1!A1:C1',
+    range: `'${name}'!A1:C1`,
     valueInputOption: 'USER_ENTERED',
     resource: {
       values: [['이벤트명', '이벤트 날짜', '비고']],
