@@ -1,4 +1,4 @@
-const CLIENT_ID = '28404387687-4dpv1lq0l2atleit02pg2pt8g43sj9of.apps.googleusercontent.com';
+const CLIENT_ID = '28404387687-nkprgp2m0ckpto9scjfugs1s2cpmm92t.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/spreadsheets';
 const SHEET_ID = '1K5Vp3T99kTP5v0kQBdAISnin36HjxAXuPJEa7Q2-DxM';
 
