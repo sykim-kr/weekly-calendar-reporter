@@ -6,5 +6,8 @@
     "dev": "npx netlify dev",
     "build": "echo 'Static site - no build needed'"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
 }

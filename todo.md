@@ -22,22 +22,14 @@ Claude-Cowork-Test/
 
 ## 체크리스트
 
-- [ ] 1. 프로젝트 초기화 (package.json, netlify.toml, .gitignore)
-- [ ] 2. public/index.html — UI 레이아웃
-  - 이벤트 리스트 (토글 스위치 + 이벤트명/날짜 + 코멘트 입력란)
-  - 하단 확인/취소 버튼
-  - Google Identity Services + gapi 스크립트 로드
-- [ ] 3. public/style.css — 깔끔한 스타일링
-- [ ] 4. public/app.js — 프론트엔드 로직
-  - Google OAuth 로그인 (GIS)
-  - 전주 월~금 캘린더 이벤트 조회 (Calendar API)
-  - 토글/코멘트 상태 관리
-  - 확인 → 활성화된 이벤트만 Google Sheets 2행에 insert (최신 상단)
-  - 취소 → 전체 토글 초기화
-- [ ] 5. GitHub 저장소 생성 및 푸시
-- [ ] 6. Netlify 배포 설정
-- [ ] 7. 매주 화요일 9시 자동 알림 스케줄 설정
-- [ ] 8. 테스트 및 검증
+- [x] 1. 프로젝트 초기화 (package.json, netlify.toml, .gitignore)
+- [x] 2. public/index.html — UI 레이아웃
+- [x] 3. public/style.css — 깔끔한 스타일링
+- [x] 4. public/app.js — 프론트엔드 로직 (OAuth + Calendar + Sheets API)
+- [x] 5. GitHub 저장소 생성 및 푸시
+- [x] 6. Netlify 배포 설정
+- [x] 7. 매주 화요일 9시 자동 알림 스케줄 설정
+- [x] 8. 테스트 및 검증
 
 ## 핵심 규칙
 - Google Sheets ID: 1K5Vp3T99kTP5v0kQBdAISnin36HjxAXuPJEa7Q2-DxM
@@ -52,4 +44,30 @@ Claude-Cowork-Test/
 - Calendar API, Sheets API 활성화
 
 ## Review
-(구현 완료 후 작성)
+
+### 구현 완료 요약 (2026-03-19)
+
+**생성된 파일:**
+- `public/index.html` — 메인 UI (토글+이벤트 리스트+코멘트+확인/취소 버튼)
+- `public/style.css` — 반응형 스타일링, 토글 스위치 CSS
+- `public/app.js` — Google OAuth(GIS) + Calendar API + Sheets API 클라이언트 로직
+- `package.json`, `netlify.toml`, `.gitignore` — 프로젝트 설정
+- `.claude/launch.json` — 로컬 개발 서버 설정
+
+**배포:**
+- GitHub: https://github.com/sykim-kr/weekly-calendar-reporter
+- Netlify: https://tiny-panda-1a8f83.netlify.app
+- 스케줄: 매주 화요일 9:03 AM 자동 알림
+
+**동작 흐름:**
+1. 페이지 접속 → Google 로그인
+2. 전주 월~금 캘린더 이벤트 자동 로드
+3. 토글로 선택/해제, 비고 입력
+4. "확인" 클릭 → 활성화된 이벤트만 Google Sheets 2행에 insert (최신 상단)
+5. "취소" 클릭 → 전체 초기화
+
+**사용 전 Google Cloud Console 설정 필요:**
+1. OAuth 동의 화면에서 앱 유형을 "웹 애플리케이션"으로 변경 또는 새로 생성
+2. Authorized JavaScript origins: `https://tiny-panda-1a8f83.netlify.app`
+3. Authorized redirect URIs: `https://tiny-panda-1a8f83.netlify.app`
+4. Calendar API, Sheets API 활성화 확인
