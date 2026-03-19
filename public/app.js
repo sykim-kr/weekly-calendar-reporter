@@ -1,26 +1,27 @@
 const CLIENT_ID = '28404387687-nkprgp2m0ckpto9scjfugs1s2cpmm92t.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/spreadsheets';
 const SHEET_ID = '1K5Vp3T99kTP5v0kQBdAISnin36HjxAXuPJEa7Q2-DxM';
+const TARGET_SHEET_NAME = 'SY-Meeting-list';
 
 let tokenClient;
 let accessToken = null;
-let sheetName = null; // 실제 시트 이름 (동적으로 가져옴)
+let sheetName = null;
+let weekOffset = -1; // -1 = 전주, -2 = 2주 전, 0 = 이번 주 등
 
 // ── 날짜 유틸 ──
-function getLastWeekRange() {
+function getWeekRange(offset) {
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0=Sun
-  // 이전 주 월요일: 현재 요일 + 이전 주까지의 거리
-  const daysToLastMon = dayOfWeek === 0 ? 6 + 7 : dayOfWeek - 1 + 7;
-  const lastMon = new Date(now);
-  lastMon.setDate(now.getDate() - daysToLastMon + 7 - 7);
 
-  // 정확한 계산: 이전 주 월요일
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - dayOfWeek - 6); // 지난주 월요일
-  if (dayOfWeek === 0) monday.setDate(now.getDate() - 6);
-  else monday.setDate(now.getDate() - dayOfWeek + 1 - 7);
-  monday.setHours(0, 0, 0, 0);
+  // 이번 주 월요일 계산
+  const thisMonday = new Date(now);
+  if (dayOfWeek === 0) thisMonday.setDate(now.getDate() - 6);
+  else thisMonday.setDate(now.getDate() - dayOfWeek + 1);
+  thisMonday.setHours(0, 0, 0, 0);
+
+  // offset 적용 (주 단위)
+  const monday = new Date(thisMonday);
+  monday.setDate(thisMonday.getDate() + offset * 7);
 
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
@@ -40,23 +41,24 @@ function formatDate(dateStr) {
 
 function formatDateRange(monday, friday) {
   const fmt = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
-  return `전주 이벤트: ${fmt(monday)} (월) ~ ${fmt(friday)} (금)`;
+  return `${fmt(monday)} (월) ~ ${fmt(friday)} (금)`;
+}
+
+function updateDateDisplay() {
+  const { monday, friday } = getWeekRange(weekOffset);
+  document.getElementById('dateRange').textContent = formatDateRange(monday, friday);
 }
 
 // ── 초기화 ──
 window.addEventListener('load', () => {
-  // gapi 로드
   gapi.load('client', async () => {
     await gapi.client.init({});
     await gapi.client.load('calendar', 'v3');
     await gapi.client.load('sheets', 'v4');
   });
 
-  // 날짜 범위 표시
-  const { monday, friday } = getLastWeekRange();
-  document.getElementById('dateRange').textContent = formatDateRange(monday, friday);
+  updateDateDisplay();
 
-  // GIS 토큰 클라이언트 초기화
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
@@ -65,6 +67,18 @@ window.addEventListener('load', () => {
 
   document.getElementById('loginBtn').addEventListener('click', () => {
     tokenClient.requestAccessToken();
+  });
+
+  document.getElementById('prevWeekBtn').addEventListener('click', () => {
+    weekOffset--;
+    updateDateDisplay();
+    if (accessToken) loadEvents();
+  });
+
+  document.getElementById('nextWeekBtn').addEventListener('click', () => {
+    weekOffset++;
+    updateDateDisplay();
+    if (accessToken) loadEvents();
   });
 
   document.getElementById('selectAll').addEventListener('change', onSelectAllChange);
@@ -89,8 +103,12 @@ function onTokenResponse(response) {
 
 // ── 캘린더 이벤트 로드 ──
 async function loadEvents() {
+  document.getElementById('loadingSection').classList.remove('hidden');
+  document.getElementById('eventsSection').classList.add('hidden');
+  document.getElementById('resultSection').classList.add('hidden');
+
   try {
-    const { monday, friday } = getLastWeekRange();
+    const { monday, friday } = getWeekRange(weekOffset);
 
     const response = await gapi.client.calendar.events.list({
       calendarId: 'primary',
@@ -118,10 +136,12 @@ function renderEvents(events) {
   container.innerHTML = '';
 
   if (events.length === 0) {
-    container.innerHTML = '<p style="text-align:center;padding:40px;color:#888;">전주에 등록된 이벤트가 없습니다.</p>';
+    container.innerHTML = '<p style="text-align:center;padding:40px;color:#888;">해당 주에 등록된 이벤트가 없습니다.</p>';
     document.getElementById('submitBtn').disabled = true;
     return;
   }
+
+  document.getElementById('submitBtn').disabled = false;
 
   events.forEach((event, index) => {
     const startDate = event.start.dateTime || event.start.date;
@@ -139,7 +159,6 @@ function renderEvents(events) {
       <input type="text" class="event-comment" placeholder="비고 입력..." data-index="${index}">
     `;
 
-    // 토글 변경 시 행 스타일 업데이트
     const toggle = row.querySelector('.event-toggle');
     toggle.addEventListener('change', () => {
       row.classList.toggle('disabled', !toggle.checked);
@@ -149,8 +168,8 @@ function renderEvents(events) {
     container.appendChild(row);
   });
 
-  // 원본 이벤트 데이터 저장
   container._events = events;
+  document.getElementById('selectAll').checked = true;
 }
 
 function escapeHtml(str) {
@@ -207,11 +226,9 @@ async function onSubmit() {
   submitBtn.textContent = '전송 중...';
 
   try {
-    // 시트에 헤더가 있는지 확인
+    await ensureSheetName();
     await ensureHeader();
 
-    // 2행에 insert (최신이 상단)
-    // 역순으로 insert해야 원래 순서가 유지됨
     const reversedRows = [...selectedRows].reverse();
 
     for (const row of reversedRows) {
@@ -223,7 +240,7 @@ async function onSubmit() {
               range: {
                 sheetId: 0,
                 dimension: 'ROWS',
-                startIndex: 1,  // 2행 (0-indexed: 1)
+                startIndex: 1,
                 endIndex: 2,
               },
               inheritFromBefore: false,
@@ -232,10 +249,9 @@ async function onSubmit() {
         },
       });
 
-      const name = await resolveSheetName();
       await gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
-        range: `'${name}'!A2:C2`,
+        range: `'${sheetName}'!A2:C2`,
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: [row],
@@ -253,25 +269,43 @@ async function onSubmit() {
   }
 }
 
-async function resolveSheetName() {
-  if (sheetName) return sheetName;
+// ── 시트 이름을 TARGET_SHEET_NAME으로 보장 ──
+async function ensureSheetName() {
+  if (sheetName === TARGET_SHEET_NAME) return;
+
   const res = await gapi.client.sheets.spreadsheets.get({
     spreadsheetId: SHEET_ID,
     fields: 'sheets.properties',
   });
-  // gid=0인 첫 번째 시트의 실제 이름을 가져옴
   const firstSheet = res.result.sheets.find(s => s.properties.sheetId === 0)
     || res.result.sheets[0];
-  sheetName = firstSheet.properties.title;
-  return sheetName;
+  const currentName = firstSheet.properties.title;
+
+  if (currentName !== TARGET_SHEET_NAME) {
+    await gapi.client.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SHEET_ID,
+      resource: {
+        requests: [{
+          updateSheetProperties: {
+            properties: {
+              sheetId: firstSheet.properties.sheetId,
+              title: TARGET_SHEET_NAME,
+            },
+            fields: 'title',
+          },
+        }],
+      },
+    });
+  }
+
+  sheetName = TARGET_SHEET_NAME;
 }
 
 async function ensureHeader() {
-  const name = await resolveSheetName();
   try {
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: `'${name}'!A1:C1`,
+      range: `'${sheetName}'!A1:C1`,
     });
     if (res.result.values && res.result.values.length > 0) return;
   } catch (e) {
@@ -280,7 +314,7 @@ async function ensureHeader() {
 
   await gapi.client.sheets.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: `'${name}'!A1:C1`,
+    range: `'${sheetName}'!A1:C1`,
     valueInputOption: 'USER_ENTERED',
     resource: {
       values: [['이벤트명', '이벤트 날짜', '비고']],

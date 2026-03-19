@@ -9,7 +9,11 @@
 <body>
   <div class="container">
     <h1>주간 캘린더 이벤트 리포트</h1>
-    <p class="subtitle" id="dateRange"></p>
+    <div class="date-nav">
+      <button id="prevWeekBtn" class="btn-arrow" title="이전 주">&larr;</button>
+      <span class="subtitle" id="dateRange"></span>
+      <button id="nextWeekBtn" class="btn-arrow" title="다음 주">&rarr;</button>
+    </div>
 
     <div id="authSection">
       <button id="loginBtn" class="btn btn-login">Google 로그인</button>
