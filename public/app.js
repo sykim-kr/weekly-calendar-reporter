@@ -6,6 +6,8 @@ const TARGET_SHEET_NAME = 'SY-Meeting-list';
 let tokenClient;
 let accessToken = null;
 let sheetName = null;
+let actualSheetId = null;
+let tokenExpiresAt = 0;
 let weekOffset = -1; // -1 = 전주, -2 = 2주 전, 0 = 이번 주 등
 
 // ── 날짜 유틸 ──
@@ -93,12 +95,30 @@ function onTokenResponse(response) {
     return;
   }
   accessToken = response.access_token;
+  tokenExpiresAt = Date.now() + (response.expires_in || 3600) * 1000 - 60000;
   gapi.client.setToken({ access_token: accessToken });
 
   document.getElementById('authSection').classList.add('hidden');
   document.getElementById('loadingSection').classList.remove('hidden');
 
   loadEvents();
+}
+
+// ── 토큰 갱신 ──
+function refreshTokenIfNeeded() {
+  if (Date.now() < tokenExpiresAt) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const origCallback = tokenClient.callback;
+    tokenClient.callback = (resp) => {
+      tokenClient.callback = origCallback;
+      if (resp.error) return reject(new Error('토큰 갱신 실패: ' + resp.error));
+      accessToken = resp.access_token;
+      tokenExpiresAt = Date.now() + (resp.expires_in || 3600) * 1000 - 60000;
+      gapi.client.setToken({ access_token: accessToken });
+      resolve();
+    };
+    tokenClient.requestAccessToken({ prompt: '' });
+  });
 }
 
 // ── 캘린더 이벤트 로드 ──
@@ -226,6 +246,7 @@ async function onSubmit() {
   submitBtn.textContent = '전송 중...';
 
   try {
+    await refreshTokenIfNeeded();
     await ensureSheetName();
     await ensureHeader();
 
@@ -238,7 +259,7 @@ async function onSubmit() {
           requests: [{
             insertDimension: {
               range: {
-                sheetId: 0,
+                sheetId: actualSheetId,
                 dimension: 'ROWS',
                 startIndex: 1,
                 endIndex: 2,
@@ -262,6 +283,7 @@ async function onSubmit() {
     showResult(`${selectedRows.length}개의 이벤트가 Google Sheets에 저장되었습니다.`, true);
     document.getElementById('eventsSection').classList.add('hidden');
   } catch (err) {
+    console.error('Sheets 저장 실패:', err);
     showResult('저장에 실패했습니다: ' + (err.result?.error?.message || err.message), false);
   } finally {
     submitBtn.disabled = false;
@@ -271,7 +293,7 @@ async function onSubmit() {
 
 // ── 시트 이름을 TARGET_SHEET_NAME으로 보장 ──
 async function ensureSheetName() {
-  if (sheetName === TARGET_SHEET_NAME) return;
+  if (sheetName === TARGET_SHEET_NAME && actualSheetId !== null) return;
 
   const res = await gapi.client.sheets.spreadsheets.get({
     spreadsheetId: SHEET_ID,
@@ -299,6 +321,7 @@ async function ensureSheetName() {
   }
 
   sheetName = TARGET_SHEET_NAME;
+  actualSheetId = firstSheet.properties.sheetId;
 }
 
 async function ensureHeader() {

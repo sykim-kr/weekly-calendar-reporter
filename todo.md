@@ -43,6 +43,25 @@ Claude-Cowork-Test/
 - Authorized redirect URIs에 Netlify URL 추가
 - Calendar API, Sheets API 활성화
 
+## 버그 수정: "전송 중..." 멈춤 현상 (2026-03-24)
+
+### 원인 분석
+1. `insertDimension`에서 `sheetId: 0` 하드코딩 → 실제 시트 ID와 불일치 시 API 에러
+2. OAuth 토큰 만료 처리 없음 → 만료 후 API 호출 시 hang
+3. 에러 디버깅 로그 부재 → 원인 파악 불가
+
+### 수정 체크리스트
+- [x] 1. `ensureSheetName()`에서 실제 sheetId를 저장하고, `onSubmit()`의 `insertDimension`에서 동적으로 사용
+- [x] 2. `onSubmit()` 내 catch 블록에 console.error 추가 (디버깅용)
+- [x] 3. API 호출 전 토큰 유효성 체크 및 자동 갱신 로직 추가
+- [ ] 4. 배포 후 테스트 검증
+
+### 변경 요약
+- **`actualSheetId` 전역 변수 추가** — `ensureSheetName()`에서 실제 시트 ID를 저장
+- **`insertDimension`의 `sheetId: 0` → `sheetId: actualSheetId`** — 시트 ID 불일치 문제 해결
+- **`tokenExpiresAt` + `refreshTokenIfNeeded()`** — 토큰 만료 시 자동 갱신 (1분 여유)
+- **`console.error` 추가** — catch 블록에서 에러 객체를 콘솔에 출력하여 디버깅 용이
+
 ## Review
 
 ### 구현 완료 요약 (2026-03-19)
