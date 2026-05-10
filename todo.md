@@ -93,17 +93,17 @@ Daily & Weekend Reflection System 마크다운 문서를 빈칸 채우기 가능
 - 기존 Client ID 재사용 (Calendar/Sheets와 동일)
 
 ### 체크리스트
-- [ ] 1. `public/reflection.html` 작성 — 평일/주말/월간 3개 섹션, 마크다운 구조 그대로 반영, 로그인/Doc ID 입력 UI 포함
-- [ ] 2. `public/reflection.css` 작성 — 읽기 좋은 폼 레이아웃, 섹션 색상 구분 (🟢🟡🔵🟣 등)
-- [ ] 3. `public/reflection.js` 작성
+- [x] 1. `public/reflection.html` 작성 — 평일/주말/월간 3개 섹션, 마크다운 구조 그대로 반영, 로그인/Doc ID 입력 UI 포함
+- [x] 2. `public/reflection.css` 작성 — 읽기 좋은 폼 레이아웃, 섹션 색상 구분 (🟢🟡🔵🟣 등)
+- [x] 3. `public/reflection.js` 작성
   - localStorage 임시 저장/복원 (작성 중 보호)
   - Google Identity Services(GIS) 토큰 클라이언트 + Docs API 로딩
   - 폼 → 마크다운 직렬화 함수
   - "Google Docs에 저장" 핸들러 (index 1에 insertText, 최신이 상단)
   - "마크다운 다운로드" 핸들러 (오프라인 백업용)
-- [ ] 4. `public/index.html`에 회고 페이지 링크 1줄 추가
-- [ ] 5. `netlify.toml` CSP에 Docs API 호스트 필요 시 추가
-- [ ] 6. 로컬 확인 후 커밋 & `claude/reflection-system-template-gwydU` 브랜치에 푸시
+- [x] 4. `public/index.html`에 회고 페이지 링크 1줄 추가
+- [x] 5. `netlify.toml` CSP에 Docs API 호스트 필요 시 추가 (`content-docs.googleapis.com` 추가)
+- [x] 6. 커밋 & `claude/reflection-system-template-gwydU` 브랜치에 푸시
 
 ### 핵심 규칙
 - localStorage 키 (작성 중 임시): `reflection:draft:daily:YYYY-MM-DD`, `reflection:draft:weekend:YYYY-Www`, `reflection:draft:monthly:YYYY-MM`, `reflection:docId`

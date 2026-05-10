@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회고 시스템 (Reflection)</title>
+  <link rel="stylesheet" href="reflection.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <div>
+        <h1>회고 시스템 <span class="page-subtitle">Daily &amp; Weekend Reflection</span></h1>
+      </div>
+      <a href="index.html" class="back-link">← 캘린더 리포터</a>
+    </header>
+
+    <div class="config-row">
+      <label class="config-field">
+        Google Docs ID
+        <input type="text" id="docId" placeholder="문서 URL의 d/{ID}/edit 부분을 붙여넣기" autocomplete="off">
+      </label>
+      <button id="loginBtn" class="btn btn-login">Google 로그인</button>
+      <span id="authStatus" class="auth-status">미로그인</span>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-mode="daily" type="button">평일 회고</button>
+      <button class="tab-btn" data-mode="weekend" type="button">주말 심층 회고</button>
+      <button class="tab-btn" data-mode="monthly" type="button">장기 패턴 분석</button>
+    </nav>
+
+    <div class="form-meta">
+      <label class="meta-field">
+        대상 날짜
+        <input type="date" id="targetDate">
+      </label>
+      <span id="draftStatus" class="draft-status"></span>
+    </div>
+
+    <main id="formContainer"></main>
+
+    <div class="action-bar">
+      <button id="saveBtn" class="btn btn-primary" type="button">Google Docs에 저장</button>
+      <button id="downloadBtn" class="btn btn-secondary" type="button">마크다운 다운로드</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">전체 초기화</button>
+    </div>
+
+    <div id="resultSection" class="hidden">
+      <p id="resultMessage"></p>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="reflection.js"></script>
+</body>
+</html>
