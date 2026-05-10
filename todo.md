@@ -65,30 +65,51 @@ Claude-Cowork-Test/
 ## 회고 템플릿 HTML 페이지 추가 (2026-05-10)
 
 ### 목표
-Daily & Weekend Reflection System 마크다운 문서를 빈칸 채우기 가능한 별도 HTML 페이지로 변환.
+Daily & Weekend Reflection System 마크다운 문서를 빈칸 채우기 가능한 별도 HTML 페이지로 변환하고, **작성한 회고를 Google Docs에 저장**한다. 최신 회고가 항상 문서 최상단에 오도록 정렬 로직을 적용한다.
 
 ### 파일 구성
 - `public/reflection.html` — 회고 작성용 페이지 (평일/주말/월간 섹션)
 - `public/reflection.css` — 회고 페이지 전용 스타일 (style.css와 분리)
-- `public/reflection.js` — localStorage 자동 저장/복원, 마크다운 다운로드 기능
+- `public/reflection.js` — localStorage 임시 저장 + Google OAuth + Google Docs API 저장
 
 ### UI 설계
 - 상단 헤더: 제목, 오늘 날짜 표시, 모드 탭 (평일 / 주말 / 월간)
 - 각 섹션은 마크다운 H2/H3 구조를 그대로 따르되, `✍️` 자리에 `<textarea>`, `[ ]`은 `<input type="checkbox">`로 변환
-- 하단 액션 바: "저장(자동)", "마크다운 다운로드", "전체 초기화"
+- 하단 액션 바: "Google Docs에 저장", "마크다운 다운로드", "전체 초기화"
 - 상단에 index.html(메인 캘린더 페이지)로 돌아가는 링크 추가
+- 미로그인 상태에서는 "Google 로그인" 버튼 노출 (기존 app.js와 동일한 GIS 흐름)
+
+### Google Docs 저장 로직 (최신이 상단)
+- OAuth scope에 `https://www.googleapis.com/auth/documents` 추가
+- 저장 시 Docs API `documents.batchUpdate` 호출
+  1. `documents.get`으로 현재 body 구조 확인 (선택)
+  2. `insertText` 요청을 **index 1** (body 시작 위치)에 넣어 새 회고 블록을 문서 맨 앞에 삽입 → 자동으로 최신이 상단
+  3. 삽입 텍스트 포맷: `\n# {YYYY-MM-DD} {평일/주말/월간} 회고\n\n{본문 마크다운}\n\n---\n\n`
+- 저장 성공 시 결과 메시지 + 문서 링크 표시, 실패 시 콘솔에 에러 로깅
+- Google Docs ID는 사용자가 입력 (페이지 상단 입력란) → localStorage(`reflection:docId`)에 캐시
+
+### 보안/설정 변경
+- `netlify.toml` CSP의 `connect-src`/`frame-src`에 `https://docs.googleapis.com`, `https://docs.google.com` 추가 필요 시 반영
+- 기존 Client ID 재사용 (Calendar/Sheets와 동일)
 
 ### 체크리스트
-- [ ] 1. `public/reflection.html` 작성 — 평일/주말/월간 3개 섹션, 마크다운 구조 그대로 반영
+- [ ] 1. `public/reflection.html` 작성 — 평일/주말/월간 3개 섹션, 마크다운 구조 그대로 반영, 로그인/Doc ID 입력 UI 포함
 - [ ] 2. `public/reflection.css` 작성 — 읽기 좋은 폼 레이아웃, 섹션 색상 구분 (🟢🟡🔵🟣 등)
-- [ ] 3. `public/reflection.js` 작성 — localStorage 자동 저장/복원, 마크다운 export 다운로드
+- [ ] 3. `public/reflection.js` 작성
+  - localStorage 임시 저장/복원 (작성 중 보호)
+  - Google Identity Services(GIS) 토큰 클라이언트 + Docs API 로딩
+  - 폼 → 마크다운 직렬화 함수
+  - "Google Docs에 저장" 핸들러 (index 1에 insertText, 최신이 상단)
+  - "마크다운 다운로드" 핸들러 (오프라인 백업용)
 - [ ] 4. `public/index.html`에 회고 페이지 링크 1줄 추가
-- [ ] 5. 로컬에서 확인 후 커밋 & `claude/reflection-system-template-gwydU` 브랜치에 푸시
+- [ ] 5. `netlify.toml` CSP에 Docs API 호스트 필요 시 추가
+- [ ] 6. 로컬 확인 후 커밋 & `claude/reflection-system-template-gwydU` 브랜치에 푸시
 
 ### 핵심 규칙
-- 순수 클라이언트 사이드 (네트워크 호출 없음)
-- localStorage 키: `reflection:daily:YYYY-MM-DD`, `reflection:weekend:YYYY-Www`, `reflection:monthly:YYYY-MM`
+- localStorage 키 (작성 중 임시): `reflection:draft:daily:YYYY-MM-DD`, `reflection:draft:weekend:YYYY-Www`, `reflection:draft:monthly:YYYY-MM`, `reflection:docId`
+- Google Docs 정렬: 항상 **document body index 1에 prepend** → 최신이 최상단
 - 마크다운 다운로드 파일명: `reflection-{daily|weekend|monthly}-{날짜}.md`
+- OAuth: 기존 Client ID 재사용, scope만 `documents` 추가
 
 ---
 
