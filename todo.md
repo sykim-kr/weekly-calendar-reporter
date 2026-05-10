@@ -62,6 +62,36 @@ Claude-Cowork-Test/
 - **`tokenExpiresAt` + `refreshTokenIfNeeded()`** — 토큰 만료 시 자동 갱신 (1분 여유)
 - **`console.error` 추가** — catch 블록에서 에러 객체를 콘솔에 출력하여 디버깅 용이
 
+## 회고 템플릿 HTML 페이지 추가 (2026-05-10)
+
+### 목표
+Daily & Weekend Reflection System 마크다운 문서를 빈칸 채우기 가능한 별도 HTML 페이지로 변환.
+
+### 파일 구성
+- `public/reflection.html` — 회고 작성용 페이지 (평일/주말/월간 섹션)
+- `public/reflection.css` — 회고 페이지 전용 스타일 (style.css와 분리)
+- `public/reflection.js` — localStorage 자동 저장/복원, 마크다운 다운로드 기능
+
+### UI 설계
+- 상단 헤더: 제목, 오늘 날짜 표시, 모드 탭 (평일 / 주말 / 월간)
+- 각 섹션은 마크다운 H2/H3 구조를 그대로 따르되, `✍️` 자리에 `<textarea>`, `[ ]`은 `<input type="checkbox">`로 변환
+- 하단 액션 바: "저장(자동)", "마크다운 다운로드", "전체 초기화"
+- 상단에 index.html(메인 캘린더 페이지)로 돌아가는 링크 추가
+
+### 체크리스트
+- [ ] 1. `public/reflection.html` 작성 — 평일/주말/월간 3개 섹션, 마크다운 구조 그대로 반영
+- [ ] 2. `public/reflection.css` 작성 — 읽기 좋은 폼 레이아웃, 섹션 색상 구분 (🟢🟡🔵🟣 등)
+- [ ] 3. `public/reflection.js` 작성 — localStorage 자동 저장/복원, 마크다운 export 다운로드
+- [ ] 4. `public/index.html`에 회고 페이지 링크 1줄 추가
+- [ ] 5. 로컬에서 확인 후 커밋 & `claude/reflection-system-template-gwydU` 브랜치에 푸시
+
+### 핵심 규칙
+- 순수 클라이언트 사이드 (네트워크 호출 없음)
+- localStorage 키: `reflection:daily:YYYY-MM-DD`, `reflection:weekend:YYYY-Www`, `reflection:monthly:YYYY-MM`
+- 마크다운 다운로드 파일명: `reflection-{daily|weekend|monthly}-{날짜}.md`
+
+---
+
 ## Review
 
 ### 구현 완료 요약 (2026-03-19)
